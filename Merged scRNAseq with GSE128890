@@ -1,0 +1,89 @@
+##############################################################################################################################################
+###Merged scRNAseq with GSE128890#############################################################################################################
+##############################################################################################################################################
+#Original##################################################
+scRNAlist <- list()
+scRNAlist[[1]] <- totalcell
+scRNAlist[[1]] <- RenameCells(scRNAlist[[1]], add.cell.id = "original")
+#####mergedata_GSE128890_Merrick
+object.data <- Read10X(data.dir = "/data/cyzhang/cooperation/iWAT/mergedata_GSE128890_Merrick/GSM3717977/")
+scRNAlist[[2]] <- CreateSeuratObject(counts = object.data, project = "GSM3717977", min.cells = 3, min.features = 200)
+scRNAlist[[2]] <- RenameCells(scRNAlist[[2]], add.cell.id = "GSM3717977")
+object.data <- Read10X(data.dir = "/data/cyzhang/cooperation/iWAT/mergedata_GSE128890_Merrick/GSM3717978/")
+scRNAlist[[3]] <- CreateSeuratObject(counts = object.data, project = "GSM3717978", min.cells = 3, min.features = 200)
+scRNAlist[[3]] <- RenameCells(scRNAlist[[3]], add.cell.id = "GSM3717978")
+####merge##################################
+object <- merge(scRNAlist[[1]],c(scRNAlist[[2]],scRNAlist[[3]]))
+DefaultAssay(object) <- "RNA"
+object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000)
+object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = 2000)
+all.genes <- rownames(object)
+object <- ScaleData(object, features = all.genes)
+object <- RunPCA(object, features = VariableFeatures(object = object),seed.use = 42)
+
+object@meta.data[which(rownames(object@meta.data)%in%grep("^original",rownames(object@meta.data),value = T)),15] <-"original"
+object@meta.data[which(rownames(object@meta.data)%in%grep("^GSM3717977",rownames(object@meta.data),value = T)),15] <-"GSE128890"#"GSE128890_12daymouse"
+object@meta.data[which(rownames(object@meta.data)%in%grep("^GSM3717978",rownames(object@meta.data),value = T)),15] <-"GSE128890"#"GSE128890_Adultmouse"
+#####RunHarmony###############################################
+object <- RunHarmony(object, group.by.vars = "V15")
+object <- object %>% 
+  RunUMAP(reduction = "harmony", dims = 1:20) %>% 
+  FindNeighbors(reduction = "harmony", dims = 1:20) %>% 
+  FindClusters(resolution = 0.5) %>% 
+  identity()
+DimPlot(object,group.by = "V15")
+####Label the cell type of GSE128890##############
+GSE128890 <- object[,object@meta.data$V15 %in% "GSE128890"]
+DimPlot(object,group.by = "celltype1012")
+DimPlot(GSE128890,label = T)
+
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(1,0,4,2,3,28,13,20,26),19] <- "Preadipocyte"
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(13),19] <- "Adipocyte"
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(12),19] <- "Sm.Muscle"
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(19),19] <- "Neural crest"
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(11),19] <- "Endothelial"
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(16,15,18,22,6,27,25),19] <- "Macrophage"
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(14,23),19] <- "DC"#23
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(10,9,7,21,17,8),19] <- "T"
+GSE128890@meta.data[GSE128890@meta.data$seurat_clusters%in%c(24,5),19] <- "B"
+GSE128890@meta.data$V19 <- factor(GSE128890@meta.data$V19,levels = c("Preadipocyte","Adipocyte","Sm.Muscle","Endothelial","Neural crest","Macrophage","DC","T","B"))
+VlnPlot(GSE128890,group.by = "V19", features = c("Ly6a","Cd34","Pdgfra","Plin1","Car3","Acta2","Tagln","Pecam1","Egfl7","Plp1","Mbp","Cd86","Ccl5","Cd3d","Cd19"),stack = TRUE, sort = F,flip = TRUE,pt.size = 0)
+###After merge################################################
+object@meta.data$mergetype <- paste0("original-",object@meta.data$celltype1012)
+object@meta.data[rownames(GSE128890@meta.data),17] <- paste0("GSE128890-",GSE128890@meta.data$V19)
+object@meta.data$mergetype <- factor(object@meta.data$mergetype,levels = c(paste0("original-",c("Schwann", "Endotheliocyte", "Fibroblast", "Neutrophil", "Mast", "pDC", "NK","Macrophage","Bcell", "Tcell","Preadipocyte")),
+                                                                           "GSE128890-Neural crest","GSE128890-Endothelial","GSE128890-Sm.Muscle","GSE128890-DC","GSE128890-Macrophage","GSE128890-B","GSE128890-T","GSE128890-Preadipocyte","GSE128890-Adipocyte"))
+p <- DimPlot(object,group.by = "mergetype",cols = c("#FFC0CB","#BC8F8F","#C0C0C0","#2F4F4F","#808000","#6A0002","#FFDAB9","#EE82EE","#3CB371","#1E90FF","#FF8C00",
+                                                    "#C696AB","#9E5B67","#666666","#DD4448","#EE2BEE","#3C7B71","#1E4BFF","#FF9FA9","#A05100")
+             ,pt.size=0.3, raster=FALSE)
+p$layers[[1]]$mapping$alpha <- 0.6
+p
+##############################################################################################################################################
+##Selected the Preadipocyte after merge#######################################################################################################
+##############################################################################################################################################
+object = object[,object@meta.data$mergetype %in% c("original-Preadipocyte","GSE128890-Preadipocyte","GSE128890-Adipocyte")]
+object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000)
+object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = 2000)
+all.genes <- rownames(object)
+object <- ScaleData(object, features = all.genes)
+object <- RunPCA(object, features = VariableFeatures(object = object))
+object <- JackStraw(object, num.replicate = 100)
+object <- ScoreJackStraw(object, dims = 1:20)
+ElbowPlot(object)
+object <- FindNeighbors(object, dims = 1:15)
+object <- FindClusters(object, resolution = 0.7)
+object <- RunUMAP(object, dims = 1:15,seed.use = 57)
+object <- RunHarmony(object, group.by.vars = "V15")
+object <- object %>% 
+  RunUMAP(reduction = "harmony", dims = 1:20) %>% 
+  FindNeighbors(reduction = "harmony", dims = 1:20) %>% 
+  FindClusters(resolution = 0.5) %>% 
+  identity()
+DimPlot(object,group.by = "Sample")
+DimPlot(object,group.by = "mergetype")
+object@meta.data[which(rownames(object@meta.data)%in%grep("^GSM3717977",rownames(object@meta.data),value = T)),7] <-"SVF_12d"#"GSE128890_12daymouse"
+object@meta.data[which(rownames(object@meta.data)%in%grep("^GSM3717978",rownames(object@meta.data),value = T)),7] <-"Adult"#"GSE128890_Adultmouse"
+
+object@meta.data$Sample <- factor(object@meta.data$Sample,levels = c("SVF_7d","SVF_12d","SVF_14d","SVF_18d","SVF_21d","SVF_28d","Adult"))
+
+DimPlot(object,group.by = "Sample")
