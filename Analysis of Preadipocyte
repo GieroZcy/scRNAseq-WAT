@@ -1,0 +1,30 @@
+##############################################################################################################################################
+###Analysis of Preadipocyte###################################################################################################################
+##############################################################################################################################################
+ttPreadipocyte <- readRDS("/data/cyzhang/cooperation/iWAT/oldpreadipocyte.rds")
+object <- readRDS("/data/cyzhang/cooperation/iWAT/totalcell_iWAT.rds")
+
+ttPreadipocyte@meta.data$name <- rownames(ttPreadipocyte@meta.data)
+Preadipocyte <- ttPreadipocyte[,ttPreadipocyte@meta.data$name %in% rownames(object@meta.data)]
+DimPlot(Preadipocyte,group.by = "celltypesum",cols = c("#FF0000","#FF8C00","#FFD700"))
+DimPlot(Preadipocyte,group.by = "Sample")
+DimPlot(Preadipocyte,cols = c("#7AAECB","#20B2AA","#84BC95","#008A6C","#0066BF",
+                              "#AB9697","#F7C9B1","#CFC397","#CFA36C","#F5A35F",
+                              "#A38CBD","#7B61A5","#E9787A","#A65A6C","#DD4448",
+                              "#1E90FF","#4588B4","#29AB57","#6A5C4E"),label = T)
+FeaturePlot(Preadipocyte,features = c("Dpp4","F3","Icam1"))
+############deg of preadipocyte######
+##DPP4
+FeaturePlot(Preadipocyte,features = c("Dpp4","Akr1c18","Cd55","Anxa3","Pi16","Sema3c","Gap43","Wnt2","Efhd1"),cols = c("#9A9FA5", "#FF0000"))
+#F3
+FeaturePlot(Preadipocyte,features = c("F3","Mgp","Mmp3","Fmo2","C2"),cols = c("#9A9FA5", "#FF0000"))
+#ICAM1
+FeaturePlot(Preadipocyte,features = c("Icam1","Vcam1","Fabp4","Ggt5","Pparg","Bmper","Cd36","Adam12","Prlr"),cols = c("#9A9FA5", "#FF0000"))
+
+
+VlnPlot(Preadipocyte,group.by = "seurat_clusters",features = c("Dpp4","Akr1c18","Cd55","Anxa3","Pi16","Sema3c","Gap43","Wnt2","Efhd1",
+                                                               "F3","Mgp","Mmp3","Fmo2","C2",
+                                                               "Icam1","Vcam1","Fabp4","Ggt5","Pparg","Bmper","Cd36","Adam12","Prlr"),stack = TRUE, sort = F,flip = TRUE,pt.size = 0,
+        cols = c("#FF0000","#FF0000","#FF0000","#FF0000","#FF0000","#FF0000","#FF0000","#FF0000","#FF0000",
+                 "#FF8C00","#FF8C00","#FF8C00","#FF8C00","#FF8C00",
+                 "#FFD700","#FFD700","#FFD700","#FFD700","#FFD700","#FFD700","#FFD700","#FFD700","#FFD700"))
