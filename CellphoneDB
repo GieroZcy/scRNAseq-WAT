@@ -1,0 +1,11 @@
+##############################################################################################################################################
+##############CellphoneDB files prepare#######################################################################################################
+##############################################################################################################################################
+totalcell_sub = totalcell[,totalcell@meta.data$Sample %in% "SVF_7d"]#"SVF_7d","SVF_14d","SVF_18d","SVF_21d","SVF_28d"
+CellphoneDB_count <- as.matrix(totalcell_sub@assays$RNA@data)
+rownames(CellphoneDB_count) <- toupper(rownames(CellphoneDB_count))
+write.table(CellphoneDB_count,'/data/cyzhang/cooperation/iWAT/cpdb/7d/CellphoneDB_count.txt',sep = '\t', quote = F)
+meta_data <- cbind(rownames(totalcell_sub@meta.data),totalcell_sub@meta.data[,'celltype1012',drop=F])
+meta_data <- as.matrix(meta_data)
+meta_data[is.na(meta_data)] = "Unkown"
+write.table(meta_data, '/data/cyzhang/cooperation/iWAT/cpdb/7d/CellphoneDB_meta.txt',sep = '\t',quote = F, row.names = F)
