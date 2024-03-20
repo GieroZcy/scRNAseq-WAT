@@ -1,0 +1,70 @@
+##############################################################################################################################################
+#####distinguished cell types#################################################################################################################
+##############################################################################################################################################
+Combined_5in1 <- readRDS("/data/cyzhang/data/20220505/Combined_5in1.rds")
+object <- Combined_5in1
+#Normalizing the data
+object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000)
+#Identification of highly variable features (feature selection)
+object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = 2000)
+#Scaling the data
+all.genes <- rownames(object)
+object <- ScaleData(object, features = all.genes)
+#Perform linear dimensional reduction
+object <- RunPCA(object, features = VariableFeatures(object = object))
+#Determine the ‘dimensionality’ of the dataset
+object <- JackStraw(object, num.replicate = 100)
+object <- ScoreJackStraw(object, dims = 1:20)
+object <- FindNeighbors(object, dims = 1:15)
+object <- FindClusters(object, resolution = 1)
+object <- RunUMAP(object, dims = 1:15,seed.use = 57)
+#########################################################################
+Combined_5in1 <- object
+subWAT.Immune = Combined_5in1[,Combined_5in1@meta.data$seurat_clusters %in% c(1,3,4,5,7,32,2,14,15,21,28,20,23,10,13,17,26,31,25,33,29)]
+object <- subWAT.Immune
+#Normalizing the data
+object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000)
+#Identification of highly variable features (feature selection)
+object <- FindVariableFeatures(object, selection.method = "vst", nfeatures = 2000)
+#Scaling the data
+all.genes <- rownames(object)
+object <- ScaleData(object, features = all.genes)
+#Perform linear dimensional reduction
+object <- RunPCA(object, features = VariableFeatures(object = object))
+#Determine the ‘dimensionality’ of the dataset
+object <- JackStraw(object, num.replicate = 100)
+object <- ScoreJackStraw(object, dims = 1:20)
+object <- FindNeighbors(object, dims = 1:15)
+object <- FindClusters(object, resolution = 1)
+object <- RunUMAP(object, dims = 1:15)
+subWAT.Immune <- object
+
+subWAT.Immune@meta.data[subWAT.Immune@meta.data$seurat_clusters %in%c(24),11] <- "Neutrophil"
+subWAT.Immune@meta.data[subWAT.Immune@meta.data$seurat_clusters %in%c(20),11] <- "Mast"
+subWAT.Immune@meta.data[subWAT.Immune@meta.data$seurat_clusters %in%c(7,21),11] <- "pDC"
+subWAT.Immune@meta.data[subWAT.Immune@meta.data$seurat_clusters %in%c(15,18,28),11] <- "NK"
+subWAT.Immune@meta.data[subWAT.Immune@meta.data$seurat_clusters %in%c(16,17,22,23,25),11] <- "Macrophage"
+subWAT.Immune@meta.data[subWAT.Immune@meta.data$seurat_clusters %in%c(0,6,8,11,26),11] <- "Bcell"
+subWAT.Immune@meta.data[subWAT.Immune@meta.data$seurat_clusters %in%c(1,2,3,4,5,9,10,12,13,14,19,27),11] <- "Tcell"
+
+colnames(subWAT.Immune@meta.data)[11] <- "immunetype"
+unique(subWAT.Immune@meta.data$immunetype)
+subWAT.Immune@meta.data$immunetype <- factor(subWAT.Immune@meta.data$immunetype, levels = c("Neutrophil", "Mast", "pDC", "NK","Macrophage","Bcell", "Tcell"))
+DimPlot(subWAT.Immune,group.by = "immunetype",reduction = "umap",cols = c("#2F4F4F","#808000","#6A0002","#FFDAB9","#EE82EE","#3CB371","#1E90FF","#FF8C00"))
+
+for (i in 1:dim(subWAT.Immune@meta.data)[1]) {
+  Combined_5in1@meta.data[rownames(subWAT.Immune@meta.data)[i],11] <- as.character(subWAT.Immune@meta.data$immunetype[i])
+}
+for (i in 1:length(rownames(subset(Combined_5in1@meta.data,seurat_clusters %in%c(18))))) {
+  Combined_5in1@meta.data[rownames(subset(Combined_5in1@meta.data,seurat_clusters %in%c(18)))[i],11] <- "Fibroblast"
+}
+for (i in 1:length(rownames(subset(Combined_5in1@meta.data,seurat_clusters %in%c(22))))) {
+  Combined_5in1@meta.data[rownames(subset(Combined_5in1@meta.data,seurat_clusters %in%c(22)))[i],11] <- "Endotheliocyte"
+}
+for (i in 1:length(rownames(subset(Combined_5in1@meta.data,seurat_clusters %in%c(24))))) {
+  Combined_5in1@meta.data[rownames(subset(Combined_5in1@meta.data,seurat_clusters %in%c(24)))[i],11] <- "Schwann"
+}
+Combined_5in1@meta.data[Combined_5in1@meta.data$seurat_clusters %in%c(0,6,8,9,11,12,16,19,27,30),11] <- "Preadipocyte"
+Combined_5in1@meta.data$V11 <- factor(Combined_5in1@meta.data$V11, levels = c("Neutrophil", "Mast", "pDC", "Schwann", "Endotheliocyte", "Fibroblast", "NK","Macrophage","Bcell", "Tcell","Preadipocyte"))
+DimPlot(Combined_5in1, group.by = "V11",reduction = "umap",cols = c("#2F4F4F","#808000","#6A0002","#FFC0CB","#BC8F8F","#C0C0C0","#FFDAB9","#EE82EE","#3CB371","#1E90FF","#FF8C00"))
+VlnPlot(Combined_5in1,group.by = "V11", features = c("Csf3r","Cpa3","Flt3","Sox10","Jam2","Acta2","Il2rb","Cd86","Ms4a1","Cd3d","Pdgfra"),stack = TRUE, sort = F,flip = TRUE,pt.size = 0,cols = c("#2F4F4F","#808000","#6A0002","#FFC0CB","#BC8F8F","#C0C0C0","#FFDAB9","#EE82EE","#3CB371","#1E90FF","#FF8C00"))
