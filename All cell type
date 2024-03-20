@@ -1,0 +1,49 @@
+##############################################################################################################################################
+#####All cell type############################################################################################################################
+##############################################################################################################################################
+Combined_5in1 <- readRDS("/data/cyzhang/cooperation/iWAT/oldcelltypeV13.rds")
+object <- readRDS("/data/cyzhang/cooperation/iWAT/output/object920.rds")
+object <- object[,object@meta.data$V13 %in% "False"]
+dim(object@meta.data)
+
+all(rownames(object@meta.data)==rownames(Combined_5in1@meta.data[rownames(object@meta.data),13]))
+object@meta.data$celltype1012 <- Combined_5in1@meta.data[rownames(object@meta.data),13]
+DimPlot(object,group.by ="celltype1012" )
+object@meta.data$celltype1012 <- factor(object@meta.data$celltype1012, levels = c("Neutrophil", "Mast", "pDC", "Schwann", "Endotheliocyte", "Fibroblast", "NK","Macrophage","Bcell", "Tcell","Preadipocyte"))
+DimPlot(object, group.by = "celltype1012",reduction = "umap",cols = c("#2F4F4F","#808000","#6A0002","#FFC0CB","#BC8F8F","#C0C0C0","#FFDAB9","#EE82EE","#3CB371","#1E90FF","#FF8C00"))
+VlnPlot(object,group.by = "celltype1012", features = c("Csf3r","Cpa3","Flt3","Sox10","Jam2","Acta2","Il2rb","Cd86","Ms4a1","Cd3d","Pdgfra"),stack = TRUE, sort = F,flip = TRUE,pt.size = 0,cols = c("#2F4F4F","#808000","#6A0002","#FFC0CB","#BC8F8F","#C0C0C0","#FFDAB9","#EE82EE","#3CB371","#1E90FF","#FF8C00"))
+
+object@meta.data$celltype1012 <- factor(object@meta.data$celltype1012, levels = c("Schwann", "Endotheliocyte", "Fibroblast", "Neutrophil", "Mast", "pDC", "NK","Macrophage","Bcell", "Tcell","Preadipocyte"))
+
+VlnPlot(object,group.by = "celltype1012", features = c("Sox10","Cdh19","S100b","Jam2","Cdh5","Vwf","Acta2","Actg2","Myh11","Ptprc","Itgam","Csf3r","S100a9","Kit","Cpa3","Tpsab1","Relb","Flt3","Batf3","Il2rb","Klrd1","Prkcq","Cd86","Cd68","Mrc1","Ms4a1","Pax5","Cd19","Cd3d","Lef1","Trac","Apod","Lum","Pdgfra"),stack = TRUE, sort = F,flip = TRUE,pt.size = 0,cols = c("#FFC0CB","#FFC0CB","#FFC0CB","#BC8F8F","#BC8F8F","#BC8F8F","#C0C0C0","#C0C0C0","#C0C0C0","red","#2F4F4F","#2F4F4F","#2F4F4F","#808000","#808000","#808000","#6A0002","#6A0002","#6A0002","#FFDAB9","#FFDAB9","#FFDAB9","#EE82EE","#EE82EE","#EE82EE","#3CB371","#3CB371","#3CB371","#1E90FF","#1E90FF","#1E90FF","#FF8C00","#FF8C00","#FF8C00"))
+#####percentage barplot
+k=0
+m=0
+heat <- data.frame(Celltype= character(), Sample= character(), Percentage= numeric(), stringsAsFactors=FALSE)
+for (i in 1:length(table(object@meta.data$Sample))) {
+  n <- table(object@meta.data$Sample)[[i]]
+  sample <- names(table(object@meta.data$Sample))[i]
+  print(n)
+  print(sample)
+  xx <- table(object@meta.data$celltype1012[c(1+m):c(m+n)])
+  print(xx)
+  for (j in 1:length(xx)) {
+    k = k+1
+    heat[k,1] <- names(table(object@meta.data$celltype1012))[j]
+    heat[k,2] <- names(table(object@meta.data$Sample))[i]
+    heat[k,3] <- 100*xx[[j]]/table(object@meta.data$Sample)[[i]]#total48668
+    heat[k,4] <- xx[[j]]
+  }
+  m = m+n
+}
+heat$Celltype <- factor(heat$Celltype, levels = c("Schwann", "Endotheliocyte", "Fibroblast","Neutrophil", "Mast", "pDC",  "NK","Macrophage","Bcell", "Tcell","Preadipocyte"))
+heat$Sample <- factor(heat$Sample, levels = c("SVF_7d","SVF_14d","SVF_18d","SVF_21d","SVF_28d"))
+
+ggplot(data = heat,aes(x=Sample,Percentage, fill = Celltype))+
+  geom_bar(stat = 'identity')+
+  scale_fill_manual(values = c("#FFC0CB","#BC8F8F","#C0C0C0","#2F4F4F","#808000","#6A0002","#FFDAB9","#EE82EE","#3CB371","#1E90FF","#FF8C00"))+
+  theme_classic()+
+  theme(legend.text = element_text(size=12),
+        axis.text = element_text(size=12),
+        axis.title = element_text(size=12))
+totalcell <- object
