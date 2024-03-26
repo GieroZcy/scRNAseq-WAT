@@ -1,0 +1,35 @@
+library(dplyr)
+library(monocle3)
+library(Seurat)
+library(tidyverse)
+library(patchwork)
+library(ggplot2)
+library(shiny)
+
+Preadipocyte <- readRDS('/data/cyzhang/Coo/iWAT/Preadipocyte.rds')
+DimPlot(Preadipocyte,group.by = "celltypesum",cols = c("#FF0000","#FF8C00","#FFD700"))
+Preadipocyte_subtype <- Preadipocyte[,Preadipocyte@meta.data$celltypesum %in% "Preadipocyte_ICAM1"]#"Preadipocyte_DPP4","Preadipocyte_F3"
+
+data <- GetAssayData(Preadipocyte_subtype, assay = 'RNA', slot = 'data')
+cell_metadata <- Preadipocyte_subtype@meta.data
+gene_annotation <- data.frame(gene_short_name = rownames(data))
+rownames(gene_annotation) <- rownames(data)
+
+object <- new_cell_data_set(data, cell_metadata = cell_metadata, gene_metadata = gene_annotation)
+object <- preprocess_cds(object, num_dim = 50)
+object <- reduce_dimension(object, preprocess_method = "PCA",reduction_method = c("UMAP"))
+object.embed <- object@int_colData$reducedDims$UMAP
+int.embed <- Embeddings(Preadipocyte_subtype, reduction = "umap")
+int.embed <- int.embed[rownames(object.embed),]
+object@int_colData$reducedDims$UMAP <- int.embed
+plot_cells(object, reduction_method="UMAP", color_cells_by="seurat_clusters")
+######learn_graph######
+object <- learn_graph(object,use_partition = F,close_loop = F)
+plot_cells(object, color_cells_by = "Sample", label_groups_by_cluster=FALSE,
+               label_leaves=FALSE, label_branch_points=FALSE)
+#####Order the cells in pseudotime######
+object <- order_cells(object)
+plot_cells(object, color_cells_by = "pseudotime", label_cell_groups = FALSE, 
+               label_leaves = FALSE,  label_branch_points = FALSE)
+
+
