@@ -2,12 +2,12 @@
 ############doublet cells with scrublet#######################################################################################################
 ##############################################################################################################################################
 str <- c("SVF_14d","SVF_18d","QSW20-3w","QSW20-4w")#"QSW20-1w"
-mat <- as.data.frame(read.delim("/data/cyzhang/cooperation/iWAT/doublet/QSW20-1w_doublet.txt"))
+mat <- as.data.frame(read.delim("QSW20-1w_doublet.txt"))
 mat <- str_split_fixed(mat[,1],"[,]",3)
 rownames(mat) <- paste0(mat[,1],"_1")
 colnames(mat) <- c("barcodes","doublet_scores","doublet")
 for (i in 1:4) {
-  nat <- as.data.frame(read.delim(paste0("/data/cyzhang/cooperation/iWAT/doublet/",str[i],"_doublet.txt")))
+  nat <- as.data.frame(read.delim(paste0(str[i],"_doublet.txt")))
   nat <- str_split_fixed(nat[,1],"[,]",3)
   rownames(nat) <- paste0(nat[,1],"_",i+1)
   colnames(nat) <- c("barcodes","doublet_scores","doublet")
