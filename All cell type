@@ -1,8 +1,8 @@
 ##############################################################################################################################################
 #####All cell type############################################################################################################################
 ##############################################################################################################################################
-Combined_5in1 <- readRDS("oldcelltypeV13.rds")
-object <- readRDS("object920.rds")
+Combined_5in1 <- readRDS("celltype.rds")
+object <- readRDS("object.rds")
 object <- object[,object@meta.data$V13 %in% "False"]
 
 all(rownames(object@meta.data)==rownames(Combined_5in1@meta.data[rownames(object@meta.data),13]))
