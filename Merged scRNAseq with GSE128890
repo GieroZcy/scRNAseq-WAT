@@ -6,10 +6,10 @@ scRNAlist <- list()
 scRNAlist[[1]] <- totalcell
 scRNAlist[[1]] <- RenameCells(scRNAlist[[1]], add.cell.id = "original")
 #####mergedata_GSE128890_Merrick
-object.data <- Read10X(data.dir = "/data/cyzhang/cooperation/iWAT/mergedata_GSE128890_Merrick/GSM3717977/")
+object.data <- Read10X(data.dir = "/mergedata_GSE128890_Merrick/GSM3717977/")
 scRNAlist[[2]] <- CreateSeuratObject(counts = object.data, project = "GSM3717977", min.cells = 3, min.features = 200)
 scRNAlist[[2]] <- RenameCells(scRNAlist[[2]], add.cell.id = "GSM3717977")
-object.data <- Read10X(data.dir = "/data/cyzhang/cooperation/iWAT/mergedata_GSE128890_Merrick/GSM3717978/")
+object.data <- Read10X(data.dir = "/mergedata_GSE128890_Merrick/GSM3717978/")
 scRNAlist[[3]] <- CreateSeuratObject(counts = object.data, project = "GSM3717978", min.cells = 3, min.features = 200)
 scRNAlist[[3]] <- RenameCells(scRNAlist[[3]], add.cell.id = "GSM3717978")
 ####merge##################################
@@ -24,7 +24,7 @@ object <- RunPCA(object, features = VariableFeatures(object = object),seed.use =
 object@meta.data[which(rownames(object@meta.data)%in%grep("^original",rownames(object@meta.data),value = T)),15] <-"original"
 object@meta.data[which(rownames(object@meta.data)%in%grep("^GSM3717977",rownames(object@meta.data),value = T)),15] <-"GSE128890"#"GSE128890_12daymouse"
 object@meta.data[which(rownames(object@meta.data)%in%grep("^GSM3717978",rownames(object@meta.data),value = T)),15] <-"GSE128890"#"GSE128890_Adultmouse"
-#####RunHarmony###############################################
+#####RunHarmony###########################################################################################################
 object <- RunHarmony(object, group.by.vars = "V15")
 object <- object %>% 
   RunUMAP(reduction = "harmony", dims = 1:20) %>% 
