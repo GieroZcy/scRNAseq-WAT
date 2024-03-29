@@ -1,8 +1,8 @@
 ##############################################################################################################################################
 ###Analysis of Preadipocyte###################################################################################################################
 ##############################################################################################################################################
-ttPreadipocyte <- readRDS("/data/cyzhang/cooperation/iWAT/oldpreadipocyte.rds")
-object <- readRDS("/data/cyzhang/cooperation/iWAT/totalcell_iWAT.rds")
+ttPreadipocyte <- readRDS("preadipocyte.rds")
+object <- readRDS("totalcell_iWAT.rds")
 
 ttPreadipocyte@meta.data$name <- rownames(ttPreadipocyte@meta.data)
 Preadipocyte <- ttPreadipocyte[,ttPreadipocyte@meta.data$name %in% rownames(object@meta.data)]
