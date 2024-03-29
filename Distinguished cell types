@@ -1,8 +1,7 @@
 ##############################################################################################################################################
 #####distinguished cell types#################################################################################################################
 ##############################################################################################################################################
-Combined_5in1 <- readRDS("/data/cyzhang/data/20220505/Combined_5in1.rds")
-object <- Combined_5in1
+object <- readRDS("Combined_5in1.rds")
 #Normalizing the data
 object <- NormalizeData(object, normalization.method = "LogNormalize", scale.factor = 10000)
 #Identification of highly variable features (feature selection)
