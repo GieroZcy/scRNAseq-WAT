@@ -6,7 +6,7 @@ library(patchwork)
 library(ggplot2)
 library(shiny)
 
-Preadipocyte <- readRDS('/data/cyzhang/Coo/iWAT/Preadipocyte.rds')
+Preadipocyte <- readRDS('Preadipocyte.rds')
 DimPlot(Preadipocyte,group.by = "celltypesum",cols = c("#FF0000","#FF8C00","#FFD700"))
 Preadipocyte_subtype <- Preadipocyte[,Preadipocyte@meta.data$celltypesum %in% "Preadipocyte_ICAM1"]#"Preadipocyte_DPP4","Preadipocyte_F3"
 
